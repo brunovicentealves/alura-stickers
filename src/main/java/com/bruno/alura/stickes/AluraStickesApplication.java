@@ -1,17 +1,11 @@
 package com.bruno.alura.stickes;
 
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
+import java.util.List;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootApplication
 public class AluraStickesApplication {
@@ -26,47 +20,28 @@ public class AluraStickesApplication {
 		// fazer um http e buscar os tops 250 filmes
 		
 		
+		ClientHttp reponseApi = new ClientHttp();
 		
-		String url ="https://api.mocki.io/v2/549a5d8b";
+		String url ="https://imdb-api.com/en/API/Top250Movies/k_zo4qk3bj";
 		
-		URI endereco  = URI.create(url);
+		ContentExtratorFilm content = new ContentExtratorFilm();
 		
-		HttpClient client = HttpClient.newHttpClient();
+		//String url ="https://api.nasa.gov/planetary/apod?api_key=y25ASKB6DZC2V3dwgM5Uz0Gf7q2bBBfPYtDQ3rMp&start_date=2022-06-12&end_date=2022-06-14";
+		
+		//ContentExtratorNasa content = new ContentExtratorNasa();
+			
+		String body =reponseApi.getResponseBody(url);
 	
-		HttpRequest request = HttpRequest.newBuilder(endereco).GET().build();
+	
+		List<Content> listContent =content.extractContent(body);
 		
-		HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-		
-		String body = response.body();
-		
-		System.out.println(body);
-		
-		
-		
-		//extrair sp ps dadps omteressa,(titulo,poster,classificação)
-		
-		/**
-		JsonParser jsonParser = new JsonParser();
-		
-		List<Map<String,String>> listFilms = jsonParser.parse(body);
-		**/
-		
-		String json =body.replace("{\"items\":",""); 
-		json =json.replace(",\"errorMessage\":\"\"}","");
-		final ObjectMapper objectMapper = new ObjectMapper();
-		Film[] films = objectMapper.readValue(json, Film[].class);
-		
-		
-		//exibir e manipular os dados 
-		
-
 		GeneratorFigurines figurines = new GeneratorFigurines();
 		
-		for (Film film : films) {
+		for (Content objectContent : listContent) {
 			
-			String urlImage=film.getImage();
+			String urlImage=objectContent.getUrlImage();
 			
-			String title = film.getTitle();
+			String title = objectContent.getTitle();
 			
 			String fileName = title +".jpg";
 			
@@ -74,9 +49,8 @@ public class AluraStickesApplication {
 			
 			figurines.createFigurines(inputStream,fileName);
 			
-			System.out.println("Title :"+film.getTitle());
-			System.out.println("Image :"+film.getImage());
-			System.out.println("imgDbRating :"+film.getImDbRating());
+			System.out.println("Title :"+objectContent.getTitle());
+			System.out.println("Image :"+objectContent.getUrlImage());
 			System.out.println();
 		}
 		
